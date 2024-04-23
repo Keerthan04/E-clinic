@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <title>E-Clinic</title>
+</head>
+<body class="grey lighten-3">
+    <div class="container">
+        <h2 class="center-align">E-Clinic</h2>
+        <h3 class="center-align"> AI Based Recommender</h1>
+        <p class="center-align">Get recommendations whether to visit the doctor or stay at home based on ur symptoms</p>
+        <div id="recommendation"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const container = document.querySelector('#recommendation');
+            try {
+                const diseasesResponse = await fetch('http://localhost:5000/');
+                const diseasesData = await diseasesResponse.json();
+                const diseases = diseasesData['diseases are'];
+
+                for (const disease of diseases) {
+                    const card = document.createElement('div');
+                    card.classList.add('card');
+
+                    const cardContent = document.createElement('div');
+                    cardContent.classList.add('card-content');
+
+                    const span = document.createElement('span');
+                    span.classList.add('card-title');
+                    span.textContent = disease;
+                    cardContent.appendChild(span);
+
+                    const button = document.createElement('button');
+                    button.classList.add('btn', 'get-recommendation');
+                    button.textContent = 'Get Recommendation';
+                    button.setAttribute('data-disease-id', diseases.indexOf(disease) + 1);
+                    cardContent.appendChild(button);
+
+                    card.appendChild(cardContent);
+                    container.appendChild(card);
+                }
+
+                document.querySelectorAll('.get-recommendation').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const diseaseId = event.target.getAttribute('data-disease-id');
+                        window.location.href = `recommendation.html?disease_id=${diseaseId}`;
+                    });
+                });
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        });
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('.sidenav').sidenav();
+            $('.datepicker').datepicker();
+            $('.modal').modal();
+            $('.tabs').tabs();
+            $('.tooltipped').tooltip();
+            $('.carousel').carousel();
+        });
+    </script>
+</body>
+</html>

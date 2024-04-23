@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <style>
+        .question {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .option-label {
+            margin-right: 10px;
+        }
+
+        .option {
+            margin-bottom: 10px;
+        }
+
+        .radio-button {
+            visibility: hidden;
+        }
+
+        .radio-button:checked + .option-label {
+            color: #1565c0;
+        }
+    </style>
+    <title>E-Clinic - Recommendation</title>
+</head>
+<body class="grey lighten-3">
+    <div class="container">
+        <h2 class="center-align">E-Clinic - Recommendation</h2>
+        <form id="recommendation-form">
+            <div id="questions"></div>
+            <button class="btn" type="submit">Recommend</button>
+        </form>
+        <div id="answers"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const diseaseId = urlParams.get('disease_id');
+            try {
+                const response = await fetch(`http://localhost:5000/survey/${diseaseId}`);
+                const surveyData = await response.json();
+                const questions = surveyData["questions are"];
+                const questionsDiv = document.getElementById('questions');
+
+                questions.forEach((question, index) => {
+                    const questionDiv = document.createElement('div');
+                    questionDiv.classList.add('question');
+                    questionDiv.textContent = question;
+
+                    const optionsDiv = document.createElement('div');
+                    optionsDiv.classList.add('option');
+
+                    const options = ['No', 'Yes'];
+                    options.forEach((option, optionIndex) => {
+                        const input = document.createElement('input');
+                        input.setAttribute('type', 'radio');
+                        input.setAttribute('value', option);
+                        input.id = `${index}-${option.toLowerCase()}`;
+                        input.classList.add('radio-button');
+                        input.required = true;
+
+                        const label = document.createElement('label');
+                        label.textContent = option;
+                        label.classList.add('option-label');
+                        label.setAttribute('for', `${index}-${option.toLowerCase()}`);
+
+                        optionsDiv.appendChild(input);
+                        optionsDiv.appendChild(label);
+
+                        if (optionIndex !== options.length - 1) {
+                            const br = document.createElement('br');
+                            optionsDiv.appendChild(br);
+                        }
+                    });
+                    questionDiv.appendChild(optionsDiv);
+                    questionsDiv.appendChild(questionDiv);
+
+                });
+            }
+            catch (error) {
+                console.error('Error fetching data:', error);
+            }
+
+                const form = document.getElementById('recommendation-form');
+                form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const answers = [];
+                const radioButtons = document.querySelectorAll('.radio-button');
+                radioButtons.forEach((radioButton, index) => {
+                    if (radioButton.checked) {
+                        const questionIndex = radioButton.id.split('-')[0];
+                        const answer = radioButton.value === 'Yes' ? 1 : 0;
+                        answers[questionIndex] = answer;
+                    }
+                });
+                console.log(answers);
+                const valid = answers.every(value => value !== undefined);
+                if (!valid) {
+                    alert('Please answer all questions.');
+                    return;
+                }
+                const response = await fetch('http://localhost:5000/recommend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        disease_id: diseaseId,
+                        answers: answers
+                    })
+                });
+                const recommendationData = await response.json();
+                window.location.href = `recommendation_result.html?recommendation=${encodeURIComponent(recommendationData.AItext)}`;
+            });
+        });
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('.sidenav').sidenav();
+            $('.datepicker').datepicker();
+            $('.modal').modal();
+            $('.tabs').tabs();
+            $('.tooltipped').tooltip();
+            $('.carousel').carousel();
+        });
+    </script>
+</body>
+</html>
